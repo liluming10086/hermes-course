@@ -1,0 +1,1136 @@
+<header class="hero">
+  <h1>Hermes 实操课</h1>
+  <p>这门课不教你"有哪些功能"，教你<strong>遇到任何 Agent，怎么用 5 分钟判断该配什么、配在哪、值不值得配</strong>。每章都是"为什么 + 现在动手 + 怎么验证"。</p>
+  <div class="tags">
+    <span class="tag">面向：AI 初学者</span>
+    <span class="tag">主线：编程 · 项目管理 · 论文</span>
+    <span class="tag">平台：Windows · 桌面版</span>
+    <span class="tag">12 章 + 3 附录</span>
+  </div>
+</header>
+
+<section id="c0">
+<h2><span class="num">00</span>你的起点诊断</h2>
+  <p class="sub">先看清"你已经有什么"，否则后面每一章你都会误以为要从零开始。</p>
+
+  <p>开课前我实际扫了你这台机器（<code>D:\Hermes</code>），结论是：<strong>你的问题不是"缺东西"，而是"库存过剩、使用方法为零"</strong>。</p>
+
+  <table>
+    <tr><th>项目</th><th>实际状态</th><th>意味着</th></tr>
+    <tr><td>技能 Skills</td><td>16 个分类、上百个技能已装</td><td>能力天花板很高，但你一个都没主动用过</td></tr>
+    <tr><td>插件 Plugins</td><td><code>plan-mode</code>、<code>ponytail</code> 已启用；<code>hindsight</code> 被禁用</td><td>装了"行为模式"类插件，但从未触发过一次</td></tr>
+    <tr><td>桌面插件</td><td>目录为空</td><td>最容易出效果的一块，完全没碰</td></tr>
+    <tr><td>自己写的 skill</td><td><strong>0 个</strong></td><td>Hermes 最核心的"自我进化"机制，等于闲置</td></tr>
+    <tr><td>memory / USER.md</td><td>已填：18% / 63%</td><td>你已经在用它记偏好，方向是对的</td></tr>
+    <tr><td>AGENTS.md</td><td>无</td><td>进任何代码仓库，我都是"空手"进去的</td></tr>
+    <tr><td><code>gh</code> CLI</td><td><strong>未安装</strong></td><td><code>github</code> 技能现在调用必然失败</td></tr>
+  </table>
+
+  <div class="box bad">
+    <b>初学者最典型的死循环</b>
+    <p>花 80% 时间找插件、装插件、看别人推荐；花 0% 时间把一件真实的事交给它做。结果：装了一堆，遇到真问题还是自己干。<strong>这门课的全部目的，就是帮你把这个比例倒过来。</strong>
+    </p>
+  </div>
+
+  <div class="analogy">
+    类比：把 Agent 想成<b>一个刚入职的高水平实习生</b>。他智商很高（模型），手也会用（工具），但他不知道你公司怎么干活。你现在的状态是——办公室里堆满了专业书（技能），你连他叫什么都没告诉，就抱怨他不好用。
+  </div>
+
+  <h3>这门课的三条原则</h3>
+  <ol>
+    <li><strong>先最小可用，再谈优化。</strong>能一句话解决的，绝不写成一个 skill。</li>
+    <li><strong>每配一样东西，必须知道它的"预算成本"。</strong>Agent 的上下文窗口是公共资源，所有常驻配置都在抢它。</li>
+    <li><strong>配完必须验证。</strong>没验证过的配置 = 不存在的配置。</li>
+  </ol>
+
+  <label class="done"><input type="checkbox" data-k="c0">我读完并确认了起点诊断</label>
+</section>
+
+<section id="c1">
+<h2><span class="num">01</span>Agent 到底是什么</h2>
+  <p class="sub">不理解这一章，后面所有配置都是背命令。</p>
+
+  <p>大模型（LLM）只会做一件事：<strong>看一段文字，猜下一个字</strong>。它自己不能上网、不能读文件、不能记住上次聊了什么。</p>
+  <p>Agent 是在外面套了一圈"外骨骼"：</p>
+
+  <div class="code"><div class="hd"><span>AGENT 的最小循环</span><button class="cp">复制</button></div><pre><code>你说话
+  ↓
+[ 系统提示词 ] + [ 历史对话 ] + [ 工具清单 ]   ← 拼成一大段文字
+  ↓
+模型输出："我要调用 read_file，参数是 xxx"
+  ↓
+Hermes 真的去读了文件，把结果塞回对话
+  ↓
+模型再看一遍，继续下一步 …… 直到它说"完成了"
+  ↓
+把结果给你</code></pre></div>
+
+  <p>关键在第二行：<strong>模型的"记忆"和"知识"，本质上就是"这次请求里塞进去的文字"。</strong>塞不进去的，它就不存在。</p>
+
+  <div class="analogy">
+    类比：模型是<b>一个每天早上失忆的天才</b>。它能力很强，但昨天的事全忘。所谓"配置 Agent"，就是<b>每天早上给它留一张便签</b>——便签上写什么、写多长，决定了它今天表现如何。
+  </div>
+
+  <h3>于是所有配置问题，都变成同一个问题</h3>
+  <p>"这段话，是每次都要给它看的，还是用到时才给它看的？"</p>
+
+  <table>
+    <tr><th>你的信息</th><th>性质</th><th>该放哪</th></tr>
+    <tr><td>"说话别客套，直接给结论"</td><td>每次都要</td><td>SOUL.md</td></tr>
+    <tr><td>"我用 Windows，主目录是 C:\Users\<用户名>"</td><td>每次都要、很短</td><td>memory</td></tr>
+    <tr><td>"这个仓库用 pnpm，测试命令是 pnpm test"</td><td>只在这个仓库要</td><td>AGENTS.md</td></tr>
+    <tr><td>"怎么把论文 PDF 拆成可检索笔记的完整流程"</td><td>用到才要、很长</td><td>SKILL.md</td></tr>
+    <tr><td>"能连数据库查数的工具"</td><td>是能力，不是知识</td><td>插件 / MCP</td></tr>
+  </table>
+
+  <div class="box">
+    <b>一句话记住</b>
+    <p>常驻的东西必须<b>短</b>，长的东西必须<b>按需加载</b>。这就是为什么 Hermes 的文档里反复出现"渐进式披露（progressive disclosure）"这个词——它不是玄学，是省钱的工程手段。</p>
+  </div>
+
+  <h3>一个具体的数字：指令预算</h3>
+  <p>业界实测（Humanlayer 提出、被广泛引用）：前沿模型在一次请求里能<strong>稳定遵循的指令大约只有 150–200 条</strong>。超过之后不是报错，而是<strong>开始随机忽略其中一些</strong>——而且你永远不知道它忽略了哪条。</p>
+  <p>这条规律直接决定了第 5 章 AGENTS.md 该怎么写。现在只需记住结论：<strong>写得多 ≠ 管得住。写太多等于没写。</strong></p>
+
+  <label class="done"><input type="checkbox" data-k="c1">我能用一句话解释"为什么常驻配置必须短"</label>
+</section>
+
+<section id="c2">
+<h2><span class="num">02</span>五层配置地图</h2>
+  <p class="sub">这是全课最重要的一张图。以后你换任何 Agent（Claude Code、Codex、Cursor）都能套用。</p>
+
+  <h3>五个抽屉</h3>
+  <table>
+    <tr><th>层</th><th>文件</th><th>加载时机</th><th>容量</th><th>写什么</th></tr>
+    <tr><td>① 身份</td><td><code>SOUL.md</code></td><td>每次会话开头，永远加载</td><td>短</td><td>语气、风格、绝对禁令</td></tr>
+    <tr><td>② 事实</td><td><code>memory</code> / <code>USER.md</code></td><td>每次会话开头，自动注入</td><td><strong>2200 / 1375 字符</strong></td><td>关于你和环境的具体事实</td></tr>
+    <tr><td>③ 项目</td><td><code>AGENTS.md</code></td><td>在那个目录里干活时</td><td>指令预算 150–200 条</td><td>这个仓库怎么构建、测什么、别碰什么</td></tr>
+    <tr><td>④ 技能</td><td><code>SKILL.md</code></td><td><strong>按需</strong>，靠 description 触发</td><td>正文 ≤500 行</td><td>一类任务的完整流程</td></tr>
+    <tr><td>⑤ 能力</td><td>插件 / MCP</td><td>启动时注册成工具</td><td>—</td><td>新的"手"，不是新的"知识"</td></tr>
+  </table>
+
+  <div class="analogy">
+    一句话形象类比：<b>SOUL 是性格，memory 是记忆，AGENTS.md 是这家公司的员工手册，SKILL.md 是工具箱里那本"用到才翻"的说明书，插件是给他配的新工具。</b>
+  </div>
+
+  <h3>决策树：一条信息该放哪</h3>
+  <div class="code"><div class="hd"><span>贴墙上的那一张</span><button class="cp">复制</button></div><pre><code>这条信息，是关于"怎么做事"还是"是什么"？
+│
+├─ 怎么做事（流程、步骤、命令序列）
+│    ├─ 只在一个项目里成立 → AGENTS.md
+│    └─ 跨项目都成立，且超过 10 行 → SKILL.md
+│
+└─ 是什么（事实、偏好、环境）
+     ├─ 每次都要知道，且一句话说得清 → memory
+     ├─ 是"我要它怎么跟我说话" → SOUL.md
+     └─ 只说一次就够，属于这次任务 → 什么都别写，说在对话里</code></pre></div>
+
+  <div class="box warn">
+    <b>三个最常见的错放</b>
+    <p><strong>1. 把流程写进 memory。</strong>memory 只有 2200 字符，一个部署流程就能吃光，还会挤掉真正的偏好。</p>
+    <p><strong>2. 把项目规则写进 SOUL.md。</strong>SOUL 是全局的，你换个仓库它还在，会污染无关项目。</p>
+    <p><strong>3. 把"这次任务的临时要求"写成 skill。</strong>一次性的东西沉淀成 skill，等于给自己养了个负担——第 10 章会讲怎么清理。</p>
+  </div>
+
+  <h3>你在 Hermes 里的实际路径</h3>
+  <p>官方文档写的是 <code>~/.hermes/</code>，但你的是自定义安装位置，实际路径是：</p>
+  <div class="code"><div class="hd"><span>bash</span><button class="cp">复制</button></div><pre><code>D:\Hermes\
+├─ SOUL.md                 ← ① 身份（全局唯一）
+├─ config.yaml             ← 设置（模型、终端、压缩…）
+├─ .env                    ← 只放密钥，不放设置
+├─ memories\               ← ② MEMORY.md / USER.md
+├─ skills\                 ← ④ 技能（16 个分类）
+├─ plugins\                ← ⑤ 你装的插件
+├─ desktop-plugins\        ← 桌面 UI 插件（你这里是空的）
+├─ profiles\               ← 多套独立人格（现在没有）
+└─ state.db                ← 所有历史会话（可搜索）</code></pre></div>
+
+  <div class="box ok">
+    <b>验证你现在就能跑</b>
+    <p>下面这条命令会让你看到全部技能和它们的描述——<strong>描述就是触发词，第 6 章会教你写</strong>。</p>
+  </div>
+  <div class="code"><div class="hd"><span>bash</span><button class="cp">复制</button></div><pre><code>hermes skills list | head -30</code></pre></div>
+
+  <label class="done"><input type="checkbox" data-k="c2">我能不看表，说出五个抽屉各放什么</label>
+</section>
+
+<section id="c3">
+<h2><span class="num">03</span>SOUL.md：只写"性格"，不写"知识"</h2>
+  <p class="sub">最容易写错的一层。90% 的人把它当成第二个 memory 用。</p>
+
+  <p><code>SOUL.md</code> 在每次会话开头<strong>逐字注入</strong>，位置在系统提示词的最前面（slot #1）。这意味着两件事：</p>
+  <ul>
+    <li>它<strong>永远生效</strong>——不需要触发词，不像 skill 那样可能没被选中；</li>
+    <li>它的每个字<strong>永远占预算</strong>——写得越长，留给任务的空间越少。</li>
+  </ul>
+
+  <h3>判断标准：3 个问题</h3>
+  <table>
+    <tr><th>问题</th><th>是 → 写进 SOUL</th><th>否 → 去哪</th></tr>
+    <tr><td>它对<strong>所有</strong>任务都成立吗？</td><td>✓</td><td>AGENTS.md / skill</td></tr>
+    <tr><td>它描述的是<strong>怎么说话/怎么决策</strong>，不是某个领域的事实？</td><td>✓</td><td>memory</td></tr>
+    <tr><td>删掉它，我会立刻感觉到"这家伙不像我的助手了"？</td><td>✓</td><td>说明它其实可有可无</td></tr>
+  </table>
+
+  <h3>好的 SOUL.md 长什么样</h3>
+  <p>结构就四块，别多：</p>
+  <div class="code"><div class="hd"><span>SOUL.md 模板</span><button class="cp">复制</button></div><pre><code>## 语气
+- 直接给结论，不写"好问题""我很乐意"。
+- 不确定就说不确定，不要编。
+- 中文回答；代码、命令、路径保持原文。
+
+## 决策方式
+- 有多个方案时，给 2–3 个选项，标出推荐项和理由。
+- 改动超过 3 个文件，先说方案等我点头，再动手。
+
+## 硬禁令
+- 不碰 `D:\公司资料\` 下的任何文件。
+- 删文件、改系统配置、花钱的操作，一律先问。
+- 不替我做 git push，只提交到本地。</code></pre></div>
+
+  <div class="box">
+    <b>为什么"硬禁令"要单独拎出来</b>
+    <p>Agent 的安全边界<strong>不能靠模型自觉</strong>。写进 SOUL 的禁令会在每一轮都被读到，是成本最低的一道保险。当然，真正确凿的护栏是 Hermes 的危险命令审批机制（第 8 章提），SOUL 只是第一层。</p>
+  </div>
+
+  <div class="lab">
+    <div class="lab-h">现在动手 · 约 5 分钟</div>
+    <h4>1. 先看你现在写了什么</h4>
+    <div class="code"><div class="hd"><span>bash</span><button class="cp">复制</button></div><pre><code>cat "D:/Hermes/SOUL.md"</code></pre></div>
+    <h4>2. 用对话方式改，不要手改文件</h4>
+    <p>直接在聊天里说这句话，我会帮你改并保留原文：</p>
+    <div class="code"><div class="hd"><span>直接发给我</span><button class="cp">复制</button></div><pre><code>帮我改 SOUL.md：加上三条硬禁令——（1）改超过 3 个文件前先说方案；（2）删文件/改系统配置前必须问；（3）不替我 git push。
+改之前先把现在的内容给我看。</code></pre></div>
+    <h4>3. 验证生效</h4>
+    <p>开新会话（<code>/new</code>）随便问一句，看语气有没有变。SOUL 是<strong>会话级快照</strong>，当前会话改了要新会话才生效。</p>
+    <ul class="check">
+      <li>我的 SOUL.md 里没有项目相关的规则（那些属于 AGENTS.md）</li>
+      <li>我的 SOUL.md 里有至少一条"绝对不做"</li>
+      <li>我开新会话验证过它生效了</li>
+    </ul>
+  </div>
+
+  <div class="box bad">
+    <b>坑</b>
+    <p>不要把 <code>AGENTS.md</code> 的内容复制进 SOUL.md 图省事。SOUL 是全局的——你在 A 项目定的"用 pnpm"，会让你在 B 项目（npm）里跑错命令，而且这种错误<strong>极难排查</strong>，因为没人会想到去看 SOUL。</p>
+  </div>
+
+  <label class="done"><input type="checkbox" data-k="c3">我的 SOUL.md 只写了语气、决策方式和禁令</label>
+</section>
+
+<section id="c4">
+<h2><span class="num">04</span>memory：唯一有硬上限的一层</h2>
+  <p class="sub">预算只有 2200 + 1375 字符。花法决定它有多大用。</p>
+
+  <p>Hermes 的记忆由两个文件组成，都在 <code>memories\</code> 目录：</p>
+  <table>
+    <tr><th>文件</th><th>内容</th><th>上限</th><th>典型条数</th></tr>
+    <tr><td><code>MEMORY.md</code></td><td>Agent 自己的笔记：环境事实、约定、踩过的坑</td><td><strong>2200 字符</strong>（≈800 tokens）</td><td>8–15 条</td></tr>
+    <tr><td><code>USER.md</code></td><td>关于你的画像：偏好、风格、水平</td><td><strong>1375 字符</strong>（≈500 tokens）</td><td>5–10 条</td></tr>
+  </table>
+
+  <h3>三个必须知道的机制</h3>
+  <ol>
+    <li><strong>冻结快照。</strong>会话开始时读一次，之后<strong>整场对话不再变</strong>。你这一场里让我记的东西，我当场能看到（工具返回里），但要写到系统提示词里得等下一场。<em>原因：保持前缀缓存，省钱。</em></li>
+    <li><strong>不会自动压缩。</strong>写满就<strong>报错</strong>，不会悄悄丢掉旧的。设计意图是逼你主动整理，而不是让重要信息无声消失。</li>
+    <li><strong>条目用 <code>§</code> 分隔</strong>，可以多行。你在系统提示里看到的那一坨就是它。</li>
+  </ol>
+
+  <div class="analogy">
+    类比：memory 是<b>贴在显示器边上的便利贴</b>，不是笔记本。便利贴只能写"周三交稿""这台机器没装 gh"这种；写不下的，说明它本来就该进笔记本（skill）。
+  </div>
+
+  <h3>该写 / 不该写</h3>
+  <table>
+    <tr><th>✓ 写进 memory</th><th>✗ 别写</th></tr>
+    <tr><td>"这台机器没装 gh，用 git 代替"</td><td>"Python 3.14 支持 f-string 嵌套"（能查到）</td></tr>
+    <tr><td>"我的项目都在 D:\code 下，用 venv"</td><td>整段报错日志、代码块</td></tr>
+    <tr><td>"不要用 sudo，我在管理员组"</td><td>"用户问过 Python"（太模糊）</td></tr>
+    <tr><td>"论文用 GB/T 7714 引用格式"</td><td>临时文件路径、一次性调试上下文</td></tr>
+    <tr><td>"上次迁移数据库是 2026-03-01"</td><td>SOUL.md / AGENTS.md 里已有的内容（重复占预算）</td></tr>
+  </table>
+
+  <div class="box warn">
+    <b>你现在的位置：USER.md 已用 63%，MEMORY.md 18%</b>
+    <p>USER.md 比预想的满。通常原因是<strong>把"流程"写进了画像</strong>——比如"沟通风格"那条里塞了一大段双代理协作协议，那其实更接近一个 skill。而"结项反馈偏好""高代价方案触发规则"这类，属于<b>决策规则</b>，既不像画像也不像流程，是 memory 的合理用法。</p>
+    <p>判断方法：<strong>如果一条记录超过 200 字符，先怀疑它该不该是个 skill。</strong></p>
+  </div>
+
+  <div class="lab">
+    <div class="lab-h">现在动手 · 约 10 分钟</div>
+    <h4>1. 看现状（含占用率）</h4>
+    <div class="code"><div class="hd"><span>bash</span><button class="cp">复制</button></div><pre><code>cat "D:/Hermes/memories/USER.md"; echo; echo "--- 字符数 ---"; wc -m "D:/Hermes/memories/USER.md" "D:/Hermes/memories/MEMORY.md"</code></pre></div>
+    <h4>2. 做一次"搬迁审计"</h4>
+    <p>把每条记录过一遍这个筛子：</p>
+    <div class="code"><div class="hd"><span>筛子</span><button class="cp">复制</button></div><pre><code>这条记录是……
+├─ 一句能说清的事实？        → 留在 memory
+├─ 超过 3 步的操作流程？      → 搬去 SKILL.md
+├─ 只对某个项目成立？         → 搬去那个项目的 AGENTS.md
+└─ 已经过时/一次性的？       → 删掉</code></pre></div>
+    <h4>3. 让我执行搬迁</h4>
+    <div class="code"><div class="hd"><span>直接发给我</span><button class="cp">复制</button></div><pre><code>审计一下 memory 和 USER.md：
+1. 列出每条记录，标注"事实 / 流程 / 项目规则 / 过时"；
+2. 流程类的，建议搬成哪个 skill；
+3. 给出精简后的版本，等我确认再改。</code></pre></div>
+    <ul class="check">
+      <li>我知道 memory 和我写的 skill 的区别是"便利贴 vs 参考文档"</li>
+      <li>我知道改了 memory 当天不会立刻进系统提示词</li>
+      <li>我做过一次搬迁审计，删掉了过时条目</li>
+    </ul>
+  </div>
+
+  <label class="done"><input type="checkbox" data-k="c4">我做过一次 memory 搬迁审计</label>
+</section>
+
+<section id="c5">
+<h2><span class="num">05</span>AGENTS.md：项目手册，越短越好</h2>
+  <p class="sub">这一层的反直觉之处：<strong>写得越全，效果越差。</strong></p>
+
+  <p>把 <code>AGENTS.md</code> 放进仓库根目录，我进这个目录干活时会自动读到。它是<strong>整个行业的事实标准</strong>——Claude Code、Codex、Cursor、Copilot、Gemini CLI 都认这个文件。所以这一章学一次，换任何工具都能用。</p>
+
+  <h3>Hermes 的实际加载规则（比你想象的细）</h3>
+  <table>
+    <tr><th>规则</th><th>行为</th></tr>
+    <tr><td>优先级</td><td><code>.hermes.md</code> → <code>AGENTS.md</code> → <code>CLAUDE.md</code> → <code>.cursorrules</code>，<strong>只取第一个命中的</strong></td></tr>
+    <tr><td>git 仓库内</td><td>从仓库根到当前目录，<strong>链式合并</strong>所有 AGENTS.md，越深越靠后 = 优先级越高</td></tr>
+    <tr><td>子目录</td><td>我在会话中途读进某个子目录时，<strong>渐进发现</strong>那里的 AGENTS.md 并注入（每个目录只查一次）</td></tr>
+    <tr><td>git 仓库外</td><td>只看当前目录，<strong>不往上找</strong>——防止 <code>D:\</code> 或用户主目录里的文件污染无关会话</td></tr>
+    <tr><td>安全</td><td>内容会过一遍提示注入扫描，命中就整份不加载，并显示 <code>[BLOCKED]</code></td></tr>
+    <tr><td>体积</td><td>超限会截断（默认保留头 70% + 尾 20%），中间被丢</td></tr>
+  </table>
+
+  <div class="box">
+    <b>这个"链式合并 + 子目录渐进"设计的意义</b>
+    <p>你可以在 monorepo 里让<strong>前端目录</strong>写"用 pnpm"，<strong>后端目录</strong>写"用 poetry"，两条规则互不打架，而且只有我真正读那边文件时才占预算。这就是"渐进式披露"在文件系统层面的落地。</p>
+  </div>
+
+  <h3>指令预算：为什么必须狠</h3>
+  <p>前面说过 150–200 条的上限。AGENTS.md 的每一行<strong>每次请求都加载</strong>，跟这次任务相不相关都一样。于是产生一个恶性循环：</p>
+  <div class="code"><div class="hd"><span>文件是怎么烂掉的</span><button class="cp">复制</button></div><pre><code>Agent 做了一件你不喜欢的事
+  → 你加一条规则防止它
+  → 下个月又一件
+  → ……重复几十次
+  → 文件变成"泥球"（ball of mud）
+  → 规则互相矛盾，Agent 开始随机遵守
+  → 你觉得"这 AI 不太行"</code></pre></div>
+
+  <div class="box bad">
+    <b>比臃肿更危险的是：过期</b>
+    <p>文档里写 <code>认证逻辑在 src/auth/handlers.ts</code>，那个文件被改名了。人类看到过时文档会怀疑；<strong>Agent 会自信地跑去错误的位置</strong>。所以：<strong>不要记录文件结构，要描述"能力"和"领域概念"</strong>——概念比路径稳定得多。</p>
+  </div>
+
+  <h3>根目录只留三样东西</h3>
+  <table>
+    <tr><th>该留</th><th>例子</th></tr>
+    <tr><td>① 一句话项目描述</td><td><code>这是一个无障碍数据可视化的 React 组件库。</code></td></tr>
+    <tr><td>② 包管理器（非默认时）</td><td><code>本项目用 pnpm workspaces。</code></td></tr>
+    <tr><td>③ 非标准的构建/检查命令</td><td><code>构建: pnpm build:lib　类型检查: pnpm tsc --noEmit</code></td></tr>
+  </table>
+  <p>其余全部走渐进披露——拆成 <code>docs/</code> 下的文件，或者做成 skill。</p>
+
+  <details>
+    <summary>看一个"瘦身版"根 AGENTS.md 的完整样子</summary>
+    <div class="code"><div class="hd"><span>AGENTS.md</span><button class="cp">复制</button></div><pre><code># 一句话
+个人论文管理工具：把 PDF 批量转成可检索的 Markdown 笔记。
+
+# 环境
+- Python 3.11 + uv（不是 pip）
+- 运行: uv run python -m paperkit
+- 测试: uv run pytest -q
+
+# 领域概念（比路径稳定）
+- "库(library)" = 一个含 papers/ 和 notes/ 的目录
+- "条目(entry)" = 一篇论文，唯一键是 arXiv ID
+- "笔记(note)" = 与 entry 同名的 .md，YAML 头含 tags
+
+# 禁忌
+- 不要改 db.sqlite 的 schema，迁移走 migrations/
+- 不要把 PDF 原文整段复制进 note
+
+# 更多
+- 引用格式规则 → docs/citation.md
+- 抓取器实现细节 → docs/fetcher.md</code></pre></div>
+  </details>
+
+  <div class="lab">
+    <div class="lab-h">现在动手 · 约 10 分钟</div>
+    <h4>1. 找一个真实仓库</h4>
+    <div class="code"><div class="hd"><span>bash</span><button class="cp">复制</button></div><pre><code>ls -d ~/Documents/*/.git 2>/dev/null | head; ls -d D:/code/*/.git 2>/dev/null | head</code></pre></div>
+    <p>没有的话，第 9 章会带你建一个练手项目。</p>
+    <h4>2. 让我现场生成，然后你砍</h4>
+    <div class="code"><div class="hd"><span>直接发给我</span><button class="cp">复制</button></div><pre><code>读一下这个仓库：D:\path\to\repo
+然后按"最小 AGENTS.md"写一份给我：只要一句话描述、包管理器、非标准命令、领域概念、禁忌。
+不要记录文件目录结构。写完告诉我哪几条你没把握。</code></pre></div>
+    <h4>3. 验证它真的被加载了</h4>
+    <p>在<strong>那个目录里</strong>开新会话，问一句：</p>
+    <div class="code"><div class="hd"><span>直接发给我</span><button class="cp">复制</button></div><pre><code>你读到的项目上下文里，测试命令是什么？只回答命令本身。</code></pre></div>
+    <p>答对了才算配好。答不上来 → 文件位置或文件名错了。</p>
+    <ul class="check">
+      <li>根 AGENTS.md 在 20 行以内</li>
+      <li>里面没有具体的文件路径清单</li>
+      <li>我在那个目录里开新会话验证过内容被加载</li>
+    </ul>
+  </div>
+
+  <label class="done"><input type="checkbox" data-k="c5">我给至少一个仓库写了 ≤20 行的 AGENTS.md 并验证生效</label>
+</section>
+
+<section id="c6">
+<h2><span class="num">06</span>SKILL.md：本课的核心</h2>
+  <p class="sub">这是 Hermes"越用越强"的唯一机制。学会这一章，你就掌握了所有 Agent 的通用扩展方式。</p>
+
+  <p>Skill 就是一个<strong>带 YAML 头的 Markdown 文件</strong>，放在 <code>skills\</code> 下的某个目录里，文件名必须叫 <code>SKILL.md</code>。没有编译、没有注册、没有重启——放进去就生效（新会话生效）。</p>
+
+  <div class="box ok">
+    <b>它是开放标准</b>
+    <p>Anthropic 在 2025 年 12 月把 Skill 规范作为开放标准发布，目前已被 <strong>33+ 个 Agent 产品</strong>采纳（Claude Code、Codex、GitHub Copilot、Cursor、Gemini CLI…）。所以你现在写的 SKILL.md，<strong>换个 Agent 也能用</strong>。这是本课最值得花时间的一章。</p>
+  </div>
+
+  <h3>三级加载：为什么 100 个技能不炸上下文</h3>
+  <table>
+    <tr><th>级别</th><th>加载什么</th><th>成本</th><th>时机</th></tr>
+    <tr><td>L0</td><td><code>skills_list()</code> — 所有技能的 <strong>name + description</strong></td><td>≈3000 tokens，全场固定</td><td>会话开始</td></tr>
+    <tr><td>L1</td><td><code>skill_view(name)</code> — 完整的 SKILL.md 正文</td><td>几百到几千 tokens</td><td><strong>我判断需要它时</strong></td></tr>
+    <tr><td>L2</td><td><code>skill_view(name, "references/x.md")</code> — 单个参考文件</td><td>按需</td><td>正文里指路时</td></tr>
+  </table>
+
+  <div class="analogy">
+    类比：L0 是<b>书架上每本书的书脊</b>（书名+一句话简介，扫一眼就知道拿哪本）；L1 是<b>把书抽出来读目录和正文</b>；L2 是<b>翻到某一章</b>。你有一百本书，占地方的只有书脊。
+  </div>
+
+  <p><strong>关键推论：<code>description</code> 是这本书的书脊，它决定了我会不会拿起这本书。</strong>写得模糊，写得再好的正文也永远不会被读到。这是初学者最大的浪费——写了一篇好文档，触发词写成了"帮助处理文档"。</p>
+
+  <h3>最小可用 skill（5 行，真的够用）</h3>
+  <div class="code"><div class="hd"><span>~/.hermes/skills/mine/xxx/SKILL.md</span><button class="cp">复制</button></div><pre><code>---
+name: xxx
+description: 做什么 + 什么时候用（含触发关键词）
+---
+
+# 标题
+## 何时用
+## 步骤
+## 坑
+## 怎么验证成功</code></pre></div>
+
+  <h3>frontmatter 的硬规则（会被校验）</h3>
+  <table>
+    <tr><th>字段</th><th>规则</th></tr>
+    <tr><td><code>name</code></td><td>≤64 字符；<strong>只能小写字母、数字、连字符</strong>；不能以连字符开头/结尾；不能有连续 <code>--</code>；<strong>必须和所在文件夹名一致</strong></td></tr>
+    <tr><td><code>description</code></td><td>≤1024 字符；非空；<strong>用第三人称</strong>（"处理 Excel 并生成报表"，不是"我可以帮你…"）；要含<strong>触发关键词</strong></td></tr>
+    <tr><td>正文</td><td>建议 ≤500 行；超了就拆到 <code>references/</code></td></tr>
+    <tr><td>引用文件</td><td>相对 skill 根目录，<strong>只一层深</strong>（<code>references/api.md</code>）</td></tr>
+  </table>
+
+  <h3>description 怎么写：对比</h3>
+  <table>
+    <tr><th>✗ 书脊看不清</th><th>✓ 一眼就知道该拿</th></tr>
+    <tr><td><code>Helps with documents</code></td><td><code>Extracts text and tables from PDFs, fills forms, merges files. Use when working with PDF files or the user mentions PDFs, forms, or document extraction.</code></td></tr>
+    <tr><td><code>代码审查助手</code></td><td><code>按团队清单审查改动：安全问题、边界条件、命名一致性。当用户要求 review、检查代码、提交前自查时使用。</code></td></tr>
+  </table>
+  <p>规律：<strong>前半句写"做什么"，后半句写"什么时候用"，并且把用户可能说的原话塞进去</strong>（review / 检查 / 自查 / 过一遍）。</p>
+
+  <h3>自由度：别把所有东西都写成死命令</h3>
+  <p>写 skill 最容易犯的错，是把需要判断的任务写成逐步命令。正确做法是<strong>按任务的脆弱程度给自由度</strong>：</p>
+  <table>
+    <tr><th>任务性质</th><th>写法</th><th>例子</th></tr>
+    <tr><td>多条路都行，靠判断</td><td>高层原则</td><td>代码审查：给检查维度，不给顺序</td></tr>
+    <tr><td>有偏好路径，允许变化</td><td>伪代码/模板</td><td>生成报告：给模板 + 参数</td></tr>
+    <tr><td>一步错就废</td><td>逐字命令</td><td>数据库迁移：<code>python migrate.py --verify --backup</code>，"不要改这个命令"</td></tr>
+  </table>
+  <div class="analogy">
+    类比：<b>两边是悬崖的独木桥</b> —— 只有一条安全路径，必须给精确护栏（迁移、发布、改生产配置）。<b>没有危险的旷野</b> —— 很多路都能到，给个方向就行（写文档、做调研）。
+  </div>
+
+  <h3>三种创建方式，从省事到讲究</h3>
+  <ol>
+    <li><strong><code>/learn</code> —— 最省事。</strong>把现成材料（一个 SDK 目录、一个文档网址、一本书、你刚教我的流程）直接变成 skill。它还会自动做"知识库式 skill"：一个精简 SKILL.md + 每章一个 <code>references/</code> 文件。</li>
+    <li><strong>让我代写（<code>skill_manage</code>）。</strong>你说"把这套流程存成 skill"，我按规范写、按目录放好。</li>
+    <li><strong>手写。</strong>用在需要精确控制的场合。</li>
+  </ol>
+
+  <div class="code"><div class="hd"><span>/learn 的四种用法</span><button class="cp">复制</button></div><pre><code># 从一个本地 SDK / 文档目录学
+/learn 读一下 ~/projects/acme-sdk，重点是鉴权和分页
+
+# 从一个网址学
+/learn https://docs.example.com/api/quickstart
+
+# 把刚才这场对话的流程固化
+/learn 我刚才部署 staging 的整个流程
+
+# 从一本书/一堆论文学（会拆成 references/）
+/learn ~/books/designing-data-intensive-applications.pdf</code></pre></div>
+
+  <h3>怎么用：技能自动变成斜杠命令</h3>
+  <div class="code"><div class="hd"><span>三种调用方式</span><button class="cp">复制</button></div><pre><code>/paper-reading 读一下 2401.12345
+
+# 链式：一次加载最多 5 个技能（前面的 /xxx 都算技能，后面是任务）
+/test-driven-development /requesting-code-review 修 issue #123 并开 PR
+
+# 自然语言也行——我会自己判断加载
+用 paper-reading 那套流程处理这个 PDF</code></pre></div>
+
+  <div class="lab">
+    <div class="lab-h">现在动手 · 约 20 分钟 · 本课最值钱的一节</div>
+    <h4>1. 做一个"真会用"的 skill：论文精读</h4>
+    <div class="code"><div class="hd"><span>直接发给我</span><button class="cp">复制</button></div><pre><code>帮我建第一个 skill，叫 paper-deep-read，放在 skills/research/ 下。
+流程我口述：拿到一篇论文 → 先用 arxiv 拿元数据和摘要 → 再读 PDF 正文 →
+输出三段：① 它解决什么问题 ② 方法的核心机制（用类比讲清） ③ 它的局限和能怎么用在我的方向上。
+每段不超过 150 字。参考文献要保留原文标题和 arXiv ID。
+先给我看 SKILL.md 草稿，我确认后再写盘。</code></pre></div>
+    <h4>2. 检查书脊写对没有</h4>
+    <p>看 <code>description</code> 是否满足：第三人称 + 含"论文 / PDF / 精读 / arXiv"这些你会说的词。</p>
+    <h4>3. 验证：新会话里能不能被选中</h4>
+    <div class="code"><div class="hd"><span>新会话（/new）里发</span><button class="cp">复制</button></div><pre><code>你有哪些和论文相关的 skill？只列名字。</code></pre></div>
+    <p>能看到 <code>paper-deep-read</code> → 装好了。看不到 → 目录或文件名错了（必须叫 <code>SKILL.md</code>）。</p>
+    <h4>4. 立刻迭代一次（这一步才是精髓）</h4>
+    <p>用它跑一篇真论文，然后说：</p>
+    <div class="code"><div class="hd"><span>直接发给我</span><button class="cp">复制</button></div><pre><code>刚才这个 skill 有个问题：<具体问题>。把这条补进 skill 的"坑"那一节，别重写整个文件。</code></pre></div>
+    <ul class="check">
+      <li>我有一个能跑的自建 skill（不是抄的模板）</li>
+      <li>它的 description 里含我会说的原话</li>
+      <li>我用过一次，并把它改进了一次</li>
+    </ul>
+  </div>
+
+  <div class="box warn">
+    <b>写 skill 的三条禁令</b>
+    <p><strong>1. 别写模型已经知道的常识。</strong>每一条都要问"它真的不知道这个吗"。一句"PDF 是便携文档格式"纯属浪费。</p>
+    <p><strong>2. 别假设工具/包已装。</strong>要写"先 <code>pip install pypdf</code>"，否则我会跑到一半崩。</p>
+    <p><strong>3. 别把一次性任务沉淀成 skill。</strong>你只会用一次的东西，写完就是负债。</p>
+  </div>
+
+  <label class="done"><input type="checkbox" data-k="c6">我创建了第一个自建 skill，并改进过它一次</label>
+</section>
+
+<section id="c7">
+<h2><span class="num">07</span>插件与技能的采购学</h2>
+  <p class="sub">不是"怎么装"，是"怎么判断值不值得装"。装错的东西比不装更贵。</p>
+
+  <h3>先分清三种东西</h3>
+  <table>
+    <tr><th></th><th>是什么</th><th>给你什么</th><th>成本</th></tr>
+    <tr><td><strong>Skill</strong></td><td>按需加载的知识文档</td><td>更懂"怎么做"</td><td>只有 description 常驻（≈便宜）</td></tr>
+    <tr><td><strong>Plugin</strong></td><td>带 Python 代码的扩展</td><td>新的<strong>工具</strong>（能调 API、能改行为、能挂钩子）</td><td>工具 schema 常驻上下文 + 安全面</td></tr>
+    <tr><td><strong>MCP Server</strong></td><td>外部进程，按协议暴露工具</td><td>接入别人的系统（数据库、SaaS）</td><td>进程开销 + 工具数量膨胀</td></tr>
+  </table>
+
+  <div class="analogy">
+    类比：<b>Skill 是给员工看的操作手册，Plugin 是给他配的新工具，MCP 是让他去对接隔壁部门。</b>手册基本免费，工具要占地方还可能有危险，对接部门则要开会协调。<strong>先考虑手册。</strong>
+  </div>
+
+  <h3>装机三问（每次想装东西，先问完）</h3>
+  <div class="code"><div class="hd"><span>采购决策</span><button class="cp">复制</button></div><pre><code>1. 我具体要在什么场景用它？——说不出具体场景，直接不装。
+2. 这能力用 skill 能不能实现？——能，就别装插件（改造成本低、无安全面）。
+3. 它常驻占多少 context？崩溃了怎么卸载？——答不上来，先放收藏夹。</code></pre></div>
+
+  <div class="box">
+    <b>你现在这台机器的活教材</b>
+    <p><code>plan-mode</code>（强制先出计划再动手）和 <code>ponytail</code>（"最懒的资深工程师"行为约束）都是<strong>行为类插件</strong>——它们不改能力，改"做事风格"。这类插件价值极高、成本极低，但<strong>必须你主动触发</strong>才生效。你装了两个月没用过一次，等于买了两本书没拆封。</p>
+    <p><code>hindsight</code>（外部记忆）被禁用了，其实是对的：你的内置 memory 才用 18%，先别急着上外部记忆。这就是"三问"起作用的例子。</p>
+  </div>
+
+  <h3>去哪找</h3>
+  <table>
+    <tr><th>找什么</th><th>命令</th></tr>
+    <tr><td>Hermes 官方插件目录</td><td><code>hermes plugins browse</code> / <code>hermes plugins search 关键词</code></td></tr>
+    <tr><td>技能仓库（skills.sh 等）</td><td><code>hermes skills search 关键词</code> / <code>/skills browse</code></td></tr>
+    <tr><td>官方可选技能（默认未激活）</td><td><code>hermes skills install official/research/arxiv</code></td></tr>
+    <tr><td>别人分享的单个 SKILL.md</td><td><code>hermes skills install https://某个网址/SKILL.md</code></td></tr>
+    <tr><td>先看再装</td><td><code>hermes skills inspect 标识</code>（不安装，只预览）</td></tr>
+  </table>
+
+  <div class="box warn">
+    <b>装之前必看 inspect</b>
+    <p>第三方 skill 是<strong>会被逐字读进来的指令</strong>，等于让别人往我的系统提示词里写字。这跟装一个 VS Code 主题完全不是一回事。<code>inspect</code> 先看内容，尤其是里面有没有"把文件内容发到某个网址"这类句子。</p>
+  </div>
+
+  <h3>装完必须验证（三步）</h3>
+  <div class="code"><div class="hd"><span>bash</span><button class="cp">复制</button></div><pre><code># 1. 确认状态是 enabled
+hermes plugins list | grep 插件名
+
+# 2. 看它声明了哪些能力、实际被授予了哪些
+hermes plugins capabilities 插件名
+
+# 3. 让运行时真跑一遍校验（不是只看文件在不在）
+hermes plugins doctor 插件名</code></pre></div>
+
+  <h3>不用了怎么办（这一步初学者从不做）</h3>
+  <table>
+    <tr><th>动作</th><th>命令</th><th>什么时候</th></tr>
+    <tr><td>临时停用</td><td><code>hermes plugins disable 名字</code></td><td>怀疑它拖慢/干扰，但想留着</td></tr>
+    <tr><td>彻底卸载</td><td><code>hermes plugins remove 名字</code></td><td>确认没用</td></tr>
+    <tr><td>技能卸载</td><td><code>hermes skills uninstall 名字</code></td><td>Hub 装的技能</td></tr>
+    <tr><td>恢复内置技能原样</td><td><code>hermes skills reset 名字 --restore</code></td><td>你改坏了内置技能想回滚</td></tr>
+  </table>
+
+  <div class="lab">
+    <div class="lab-h">现在动手 · 约 10 分钟</div>
+    <h4>1. 先看目录里有什么（只读，安全）</h4>
+    <div class="code"><div class="hd"><span>bash</span><button class="cp">复制</button></div><pre><code>hermes plugins browse 2>&1 | head -40</code></pre></div>
+    <h4>2. 对你现有的 4 个插件做一次"三问体检"</h4>
+    <div class="code"><div class="hd"><span>直接发给我</span><button class="cp">复制</button></div><pre><code>给我这 4 个插件各写一句"什么时候该用它"的触发条件：
+plan-mode、ponytail、hindsight、hermes-windows-computer-use。
+然后告诉我哪个我其实用不上，可以 disable。</code></pre></div>
+    <h4>3. 亲手装一个、再卸一个（练手感）</h4>
+    <div class="code"><div class="hd"><span>bash</span><button class="cp">复制</button></div><pre><code>hermes skills search paper 2>&1 | head -20</code></pre></div>
+    <p>有合适的就 <code>inspect</code> → <code>install</code> → 验证；没有合适的就更好了，说明你不用装。</p>
+    <ul class="check">
+      <li>我能说出"skill / plugin / MCP"三者的区别</li>
+      <li>我每次装东西前会先问那三个问题</li>
+      <li>我知道怎么彻底卸载，以及怎么回滚内置技能</li>
+    </ul>
+  </div>
+
+  <label class="done"><input type="checkbox" data-k="c7">我对现有插件做过体检，并知道怎么卸载</label>
+</section>
+
+<section id="c8">
+<h2><span class="num">08</span>把 Agent 当操作系统用</h2>
+  <p class="sub">同一个模型，编排方式不同，产出差 10 倍。这一章讲"什么活该用什么姿势派"。</p>
+
+  <p>到这一步你已经会配了。但配好之后最常见的浪费是：<strong>所有活都用"直接干"这一种姿势</strong>——你说需求，我埋头写，写完你发现方向错了，重来。</p>
+
+  <h3>五种编排姿势</h3>
+  <table>
+    <tr><th>姿势</th><th>解决什么问题</th><th>什么时候用</th><th>成本</th></tr>
+    <tr><td><strong>直接干</strong></td><td>—</td><td>小改动、路径唯一的活</td><td>最低</td></tr>
+    <tr><td><strong>计划模式</strong><br><code>plan-mode</code></td><td>方向跑偏</td><td>多文件改动、架构选择、你也没想清楚</td><td>低（多一轮）</td></tr>
+    <tr><td><strong>对抗提问</strong><br><code>grill-me</code></td><td>方案本身是错的</td><td>动手前、重大决策前</td><td>低，回报最高</td></tr>
+    <tr><td><strong>分身</strong><br><code>delegate_task</code></td><td>上下文被污染 / 要并行</td><td>调研、批量处理、互不依赖的多条线</td><td>中（子代理会烧 token）</td></tr>
+    <tr><td><strong>定时</strong><br>cron</td><td>需要周期性/到点提醒</td><td>监控、日报、定时检查</td><td>低（无人值守）</td></tr>
+  </table>
+
+  <h3>① 计划模式：先看图纸再施工</h3>
+  <p>你装了 <code>plan-mode</code> 插件，它让"先出计划、等你批准"变成<strong>强制</strong>流程，而不是靠我自觉。</p>
+  <div class="code"><div class="hd"><span>用法</span><button class="cp">复制</button></div><pre><code># 方式一：斜杠命令（内置 plan skill，任何环境都能用）
+/plan 给论文库加一个按 tag 检索的命令行子命令
+
+# 方式二：插件强制模式（会拦住我，不批准不许改文件）
+/planmode
+
+# 方式三：直接说人话
+先别动手。给我一个方案：要改哪几个文件、每个文件改什么、有什么风险。我点头你再动。</code></pre></div>
+  <div class="box ok">
+    <b>为什么这一步性价比最高</b>
+    <p>改 5 个文件之后发现方向错了，损失的是 5 个文件的返工 + 你判断的时间。先看 10 行方案只要 30 秒。<strong>方案比代码便宜一个数量级。</strong></p>
+  </div>
+
+  <h3>② 对抗提问：让 Agent 反过来审你</h3>
+  <p><code>grill-me</code> 这个技能会让<strong>我扮演质疑者</strong>，对着你的计划连续发问，直到露出漏洞。初学者最缺的不是执行力，是"有人问你为什么这么做"。</p>
+  <div class="code"><div class="hd"><span>用法</span><button class="cp">复制</button></div><pre><code>/grill-me 我打算用 SQLite 存论文元数据，笔记存 Markdown 文件
+
+# 或者更直接的问法
+在这个方案动手前，找三个会让它失败的原因。不要安慰我。</code></pre></div>
+
+  <h3>③ TDD + 审查：给"写完了"加一道闸</h3>
+  <div class="code"><div class="hd"><span>标准三步</span><button class="cp">复制</button></div><pre><code>/test-driven-development 实现 parse_arxiv_id()，输入 URL/ID 都要能解析
+
+# 写完之后，提交之前
+/requesting-code-review
+
+# 代码变多了、想清理
+/simplify-code</code></pre></div>
+  <p>TDD 的核心约束是<strong>先写一个会失败的测试</strong>。它防的不是"写错"，是"写了一堆你以为对的东西，其实没人验证过"。</p>
+
+  <h3>④ 分身：为什么要"另开一个脑子"</h3>
+  <p><code>delegate_task</code> 会起一个<strong>上下文完全独立</strong>的子代理。它的价值不是"并行更快"，而是<strong>不污染主对话</strong>。</p>
+  <div class="analogy">
+    类比：你要查 20 个网页写调研。让主线程去查，20 个网页的全文会全塞进对话，等你回到正事时，上下文已经被垃圾填满（还会更贵、更容易忘事）。派个分身去查，<b>它只带回一张摘要表</b>。
+  </div>
+  <div class="box bad">
+    <b>分身最大的坑：它的汇报不可信</b>
+    <p>子代理说"已完成上传"、"文件已写好"，<strong>这是自述，不是事实</strong>。所以派活时必须要求它交出<strong>可验证的凭据</strong>：绝对路径、URL、commit hash。然后我去核对。这条规则对任何 Agent 都成立。</p>
+  </div>
+
+  <h3>⑤ 定时：无人值守的那部分</h3>
+  <div class="code"><div class="hd"><span>典型用途</span><button class="cp">复制</button></div><pre><code>每天早上 8 点：把 arXiv 上 cs.CL 的新论文标题+摘要摘要成 5 条发给我
+每周一：检查 D:\code 下所有仓库有没有未提交的改动，列出来
+每小时：盯着某个网页有没有变化，变了才通知我</code></pre></div>
+  <p>说人话就行，我会把它变成 cron 任务。注意：定时任务的结果需要投递渠道（桌面通知 / 消息平台），第 9 章会用到。</p>
+
+  <h3>一套"标准施工流程"（建议直接抄）</h3>
+  <div class="code"><div class="hd"><span>从想法到落地</span><button class="cp">复制</button></div><pre><code>① 我描述目标（用大白话，不用管术语）
+② 你回一个方案 + 风险 + 需要我决定的分叉点
+③ 我挑一个选项（或说"就按你说的"）
+④ 你动手，边做边报关键节点
+⑤ 做完给我：改了哪些文件 + 怎么验证 + 跳过了什么
+⑥ 复盘：这次的流程值不值得存成 skill？（→ 第 10 章）</code></pre></div>
+  <p>把这段直接发给我一次，我会把它当成默认协作方式（也会建议存进 SOUL.md 或 memory）。</p>
+
+  <label class="done"><input type="checkbox" data-k="c8">我知道五种编排姿势各自解决什么问题</label>
+</section>
+
+<section id="c9">
+<h2><span class="num">09</span>三个场景配方</h2>
+  <p class="sub">你的三条主线，每条给一张"照着念就行"的配方卡。</p>
+
+  <h3>配方 A · 编程</h3>
+  <table>
+    <tr><th>场景</th><th>照着发这一句</th><th>会用到</th></tr>
+    <tr><td>新功能</td><td><code>/plan 给 X 加 Y 功能。先给方案，我批准再写。</code></td><td>plan → TDD → review</td></tr>
+    <tr><td>修 bug</td><td><code>这个报错：&lt;粘贴完整报错&gt;。先定位根因，别急着改。</code></td><td>systematic-debugging</td></tr>
+    <tr><td>看不懂老代码</td><td><code>读 D:\repo，画一张模块依赖图，标出哪些文件最常被改。</code></td><td>codebase-inspection / archify</td></tr>
+    <tr><td>提交前自查</td><td><code>/requesting-code-review 只审查这次 diff，别改代码。</code></td><td>review</td></tr>
+    <tr><td>想验证一个想法</td><td><code>/spike 用 20 行验证"能不能从 PDF 抽取公式"，能跑就扔。</code></td><td>spike</td></tr>
+    <tr><td>PR / issue</td><td><code>/github 把这次改动开成 PR</code></td><td>github（<strong>需先装 gh</strong>）</td></tr>
+  </table>
+
+  <div class="box warn">
+    <b>你现在的硬阻塞：<code>gh</code> 没装</b>
+    <p>所有 GitHub 相关技能都会失败。装法（Windows）：</p>
+    <div class="code"><div class="hd"><span>bash</span><button class="cp">复制</button></div><pre><code>winget install --id GitHub.cli
+gh auth login</code></pre></div>
+    <p>装之前先问自己：我这个月真的要用 GitHub 吗？不用就先别装——这就是第 7 章的"三问"。</p>
+  </div>
+
+  <h3>配方 B · 项目管理</h3>
+  <table>
+    <tr><th>场景</th><th>照着发这一句</th><th>会用到</th></tr>
+    <tr><td>周一排期</td><td><code>/weekly-review-planning 这周要做完 X、Y。帮我排出优先级和卡点。</code></td><td>weekly-review-planning</td></tr>
+    <tr><td>文档变任务</td><td><code>把这份需求文档拆成可执行任务，每条注明来源原文和依赖关系。</code></td><td>document-to-action-items</td></tr>
+    <tr><td>会议结束</td><td><code>这是会议录音转的文字，提取决策、负责人、截止日期。</code></td><td>meeting-action-items</td></tr>
+    <tr><td>进度追踪</td><td><code>建一个 kanban 板，把这 6 个任务按"待办/进行/待审/完成"排。</code></td><td>kanban</td></tr>
+    <tr><td>风险预警</td><td><code>按现在的进度，哪些任务会延期？给三个最可能的原因。</code></td><td>直接问</td></tr>
+  </table>
+
+  <div class="box">
+    <b>项目管理的真正杠杆不在"记任务"</b>
+    <p>任务清单谁都会记。<strong>Agent 的价值在于"逼你把隐含假设说出来"</strong>——用 <code>/grill-me</code> 审一遍排期，它会问你"这个任务依赖谁的输入？他没给怎么办？"，这比任何 Gantt 图都有用。</p>
+  </div>
+
+  <h3>配方 C · 论文书写</h3>
+  <p>论文是长链条、强引用、格式严格的任务——正好是 Agent 最能发挥的地方，也最容易被它糊弄。分四段：</p>
+  <table>
+    <tr><th>阶段</th><th>怎么做</th><th>关键技能</th></tr>
+    <tr><td>① 选题调研</td><td>按关键词/分类扫 arXiv，产出"这 20 篇在解决什么、方法分几派"的地图</td><td><code>arxiv</code></td></tr>
+    <tr><td>② 精读</td><td>你自己做</td><td><code>paper-deep-read</code>（第 6 章你建的那个）</td></tr>
+    <tr><td>③ 写作</td><td>先出大纲 → 每节写要点 → 再扩写成文；<strong>不要让它一次写全文</strong></td><td><code>docx</code> / Markdown</td></tr>
+    <tr><td>④ 引用核查</td><td>逐条核对"这句话真有这篇文献支持吗"，标出来源位置</td><td><code>grounded-citations</code></td></tr>
+  </table>
+
+  <div class="box bad">
+    <b>论文场景唯一的红线：不许它编引用</b>
+    <p>模型编造参考文献是<b>高频且致命</b>的错误，格式还特别逼真。所以流程必须是：<strong>先有真实来源，再写引用的句子</strong>，而不是反过来。用 <code>grounded-citations</code> 强制"每个断言都要挂一个可点开的来源"。</p>
+  </div>
+
+  <div class="code"><div class="hd"><span>论文写作的四句开法</span><button class="cp">复制</button></div><pre><code># 调研
+/search arxiv 找 2024 年后关于 "agent memory" 的论文，按方法分类，给表格
+
+# 大纲（先要结构，不要文字）
+基于这 12 篇的笔记，给我一个 5 节的论文大纲，每节列 3 个要点和支撑文献
+
+# 扩写（一节一节来）
+只写第 2 节，800 字，每个论断后面标 [来源编号]
+
+# 核查
+把全文的 [来源编号] 逐条对回原始文献，列出对不上的</code></pre></div>
+
+  <label class="done"><input type="checkbox" data-k="c9">我把三条配方里至少一条真正用了一次</label>
+</section>
+
+<section id="c10">
+<h2><span class="num">10</span>让它越用越懂你</h2>
+  <p class="sub">前面九章是"你配它"。这一章是"它自己长"——Hermes 真正区别于其他 Agent 的地方。</p>
+
+  <h3>闭环长什么样</h3>
+  <div class="code"><div class="hd"><span>自进化回路</span><button class="cp">复制</button></div><pre><code>干一件没干过的事
+  → 中途踩坑、绕路、被你纠正
+  → 干完了
+  → 【关键】问一句："这套流程值得存成 skill 吗？"
+  → 存（skill_manage）→ 下次直接复用，不用再教
+  → 用了几次发现有问题 → patch 更新它
+  → 长期没用的 → curator 自动归档</code></pre></div>
+
+  <p><strong>90% 的人卡在第 4 步。</strong>活干完了就关窗口，下次同样的活从头教一遍。这不是记性问题，是习惯问题。</p>
+
+  <h3>三句话触发沉淀</h3>
+  <div class="code"><div class="hd"><span>干完活之后，随手发一句</span><button class="cp">复制</button></div><pre><code># 1. 沉淀
+把刚才这套流程存成 skill，名字你自己定，description 要含"论文/PDF/精读"这些词。
+
+# 2. 修正（比新写更重要）
+刚才第三步走弯路了。把正确做法补进那个 skill 的"坑"里，别重写整个文件。
+
+# 3. 清理
+我这个 skills 目录里，哪些是我自己写的、而且从没被用过？列出来。</code></pre></div>
+
+  <h3>curator：自动打扫，但只归档不删除</h3>
+  <table>
+    <tr><th>项目</th><th>行为</th></tr>
+    <tr><td>触发条件</td><td>距上次运行 ≥7 天 <strong>且</strong> 你闲置 ≥2 小时（不是定时任务，是空闲检查）</td></tr>
+    <tr><td>状态流转</td><td><code>active</code> → <code>stale</code> → <code>archived</code></td></tr>
+    <tr><td>管谁</td><td>默认只管<strong>你和 Agent 自建</strong>的技能；内置技能要显式开 <code>curator.prune_builtins</code> 才管</td></tr>
+    <tr><td>安全性</td><td><strong>从不自动删除</strong>，最坏是移到 <code>skills\.archive\</code>，可恢复</td></tr>
+    <tr><td>不管谁</td><td>Hub 装的技能永远不动</td></tr>
+  </table>
+  <p>意义：你不必担心"技能越攒越多把上下文撑爆"，但也别指望它替你判断价值——<strong>归档的是"没人用"，不是"没用"</strong>。</p>
+
+  <h3>每周 10 分钟维护（唯一需要你坚持的事）</h3>
+  <div class="code"><div class="hd"><span>周五下班前，一次发完</span><button class="cp">复制</button></div><pre><code>做个每周检查：
+1. 列出我自建的 skills，标出这周用过的和没用的；
+2. 没用的那些，问我是删、是改、还是留着；
+3. 看一眼 memory 占用率，超过 80% 的提议精简；
+4. 这周有哪些活是我重复干了两次以上的？建议沉淀成 skill。</code></pre></div>
+
+  <h3>最后一个元技能：识别"它在糊弄你"</h3>
+  <table>
+    <tr><th>症状</th><th>真相</th><th>怎么反击</th></tr>
+    <tr><td>说"已完成""已修复"</td><td>工具调用成功 ≠ 任务成功</td><td>要求给出可验证凭据：路径、命令输出、hash</td></tr>
+    <tr><td>报告"上传成功/发布成功"</td><td>子代理的自述不可信</td><td>让它回读目标，你去核对</td></tr>
+    <tr><td>一连串"顺手优化"</td><td>可能是幻觉出来的工作量</td><td>"只改我让你改的，其余列出来等我批"</td></tr>
+    <tr><td>回答特别顺、特别全</td><td>可能没查，在编</td><td>"这条结论的来源是哪个文件/网址？"</td></tr>
+    <tr><td>反复同一个错</td><td>缺前置信息</td><td>停下来补 AGENTS.md，而不是重试</td></tr>
+  </table>
+
+  <div class="box ok">
+    <b>学完这门课，你真正带走的能力</b>
+    <p>不是 Hermes 的命令，而是这四件事：<strong>① 分层配置</strong>（什么放哪）<strong>② 预算意识</strong>（常驻必须短）<strong>③ 渐进披露</strong>（长的按需加载）<strong>④ 验证习惯</strong>（说的不等于做的）。这四条换到 Claude Code、Codex、Cursor 上，一字不改都成立。</p>
+  </div>
+
+  <label class="done"><input type="checkbox" data-k="c10">我建立了"干完活就沉淀"的习惯，并做过一次每周检查</label>
+</section>
+
+<section id="c11">
+<h2><span class="num">11</span>外观层：皮肤、桌宠、状态可见性</h2>
+  <p class="sub">这一层不影响能力，但决定你愿不愿意天天打开它。它是最便宜的一次性投入。</p>
+
+  <p>先把三样东西分开，否则你会以为它们是一回事：</p>
+
+  <table>
+    <tr><th>东西</th><th>是什么</th><th>影响范围</th><th>改法</th></tr>
+    <tr><td><strong>皮肤 skin</strong></td><td>一个 YAML 调色板文件</td><td>CLI + TUI + 桌面应用<strong>三端同时</strong></td><td><code>hermes skin</code> / <code>hermes config set display.skin</code></td></tr>
+    <tr><td><strong>桌面主题</strong></td><td>插件里注册的主题对象</td><td>只影响桌面应用</td><td>写进 desktop-plugin</td></tr>
+    <tr><td><strong>桌宠 pet</strong></td><td>会动的精灵图，跟 Agent 状态联动</td><td>CLI + TUI + 桌面</td><td><code>hermes pets</code></td></tr>
+  </table>
+
+  <h3>为什么"好看"其实是正经需求</h3>
+  <p>不是审美问题，是<strong>信息带宽</strong>问题。Agent 干活时你在等，等的时候你不知道它在想、在跑工具、还是卡住了。桌宠和状态条把这三件事变成<strong>一眼可见的信号</strong>——它不动 = 卡住了，它在跑 = 正在调工具，它变红 = 报错了。</p>
+
+  <div class="analogy">
+    类比：机房里的服务器都长得一样，但运维会给关键机器贴一张<b>会闪的便签</b>。便签不增加算力，但它让你不用登进去就能知道"这台在干活"。桌宠就是那张便签。
+  </div>
+
+  <div class="box">
+    <b>但先问一句：值得吗</b>
+    <p>如果你每天只看两眼 Hermes，桌宠是玩具。如果你是长时间挂着它干活（写代码、跑长任务），<strong>状态可见性的收益远大于成本</strong>——因为你会停止"每隔两分钟切窗口看一眼"这个习惯。</p>
+  </div>
+
+  <h3>皮肤：三端一起换</h3>
+  <p>皮肤是<strong>语义化</strong>的：一个键管一类元素。所以你不用记"标题用第几个颜色"，只要知道"工具调用的圆点叫 <code>ui_tool</code>"。</p>
+
+  <table>
+    <tr><th>你看到的东西</th><th>对应的键</th></tr>
+    <tr><td>整个背景</td><td><code>background</code></td></tr>
+    <tr><td>工具调用标记（那个 <code>●</code>）、转圈</td><td><code>ui_tool</code>（未设则跟随 <code>ui_accent</code>）</td></tr>
+    <tr><td>思考/推理文字</td><td><code>ui_thinking</code></td></tr>
+    <tr><td>强调色：标题、链接、箭头</td><td><code>ui_accent</code> / <code>banner_accent</code></td></tr>
+    <tr><td>正文、你发的消息</td><td><code>ui_text</code> / <code>ui_label</code></td></tr>
+    <tr><td>次要文字、树状连接线</td><td><code>banner_dim</code></td></tr>
+    <tr><td>边框、分隔线</td><td><code>ui_border</code> / <code>banner_border</code></td></tr>
+    <tr><td>成功 / 警告 / 报错</td><td><code>ui_ok</code> / <code>ui_warn</code> / <code>ui_error</code></td></tr>
+    <tr><td>代码高亮（字符串/数字/关键字/注释）</td><td><code>syntax_string</code> / <code>syntax_number</code> / <code>syntax_keyword</code> / <code>syntax_comment</code></td></tr>
+  </table>
+
+  <div class="code"><div class="hd"><span>bash · 换皮肤的全部命令</span><button class="cp">复制</button></div><pre><code># 看有哪些皮肤
+hermes skin list
+
+# 切换（会让 CLi / TUI / 桌面 在一秒内一起重绘）
+hermes skin use &lt;名字&gt;
+hermes config set display.skin &lt;名字&gt;
+
+# 只改当前皮肤里的某一个颜色（不会丢背景、不会丢其它配色）
+hermes skin set ui_tool "#00FFFF"
+hermes skin set background "#08201f"</code></pre></div>
+
+  <div class="box bad">
+    <b>三个必踩的坑</b>
+    <p><strong>1. 想微调一个颜色，不要去 fork <code>default</code>。</strong>从 default 抄一份新皮肤，会顺手丢掉当前调色板和 <code>background</code>，结果是背景被打回终端默认（通常是纯黑）。用 <code>hermes skin set</code> 原地改。</p>
+    <p><strong>2. 不要手改 <code>config.yaml</code>。</strong>一个缩进错误能让整个配置失效（连 <code>/</code> 都起不来）。永远走 <code>hermes config set</code>。</p>
+    <p><strong>3. 皮肤名不能撞内置。</strong><code>mono</code> / <code>slate</code> / <code>cyberpunk</code> / <code>nous</code> / <code>midnight</code> / <code>ember</code> 这几个名字，你写的同名文件在桌面端盖不掉内置皮肤。换个名字。</p>
+  </div>
+
+  <h3>桌宠：装一个，然后忘了它</h3>
+  <p>桌宠来自公开画廊 <strong>petdex</strong>，装到 <code>&lt;HERMES_HOME&gt;\pets\</code>。它会跟着 Agent 的状态切换动作：空闲 / 跑工具 / 思考 / 报错 / 完成。</p>
+
+  <div class="code"><div class="hd"><span>bash · 桌宠全流程</span><button class="cp">复制</button></div><pre><code># 1. 逛画廊（可带关键词过滤）
+hermes pets list
+hermes pets list cat
+
+# 2. 装并设为当前
+hermes pets install &lt;slug&gt; --select
+
+# 3. 在终端里预览效果（Ctrl+C 停）
+hermes pets show
+
+# 4. 大小不合适就调（0.1 ~ 3.0）
+hermes pets scale 0.5
+
+# 5. 体检：确认装好、选中、启用
+hermes pets doctor
+
+# 6. 不想要了
+hermes pets off          # 只关掉，不删
+hermes pets remove &lt;slug&gt; # 真删</code></pre></div>
+
+  <table>
+    <tr><th>配置项（<code>display.pet</code>）</th><th>作用</th></tr>
+    <tr><td><code>enabled</code></td><td>总开关</td></tr>
+    <tr><td><code>slug</code></td><td>当前用哪只；空 = 用第一只已安装的</td></tr>
+    <tr><td><code>render_mode</code></td><td><code>auto</code> 自动检测 / <code>kitty</code> / <code>sixel</code> / <code>unicode</code> / <code>off</code></td></tr>
+    <tr><td><code>scale</code></td><td>尺寸，默认 0.33</td></tr>
+    <tr><td><code>unicode_cols</code></td><td>Unicode 降级渲染时的宽度</td></tr>
+  </table>
+
+  <div class="box warn">
+    <b>桌宠不显示的四个原因（按概率排）</b>
+    <p><strong>1.</strong> 装了但没 <code>select</code>——必须安装 <strong>且</strong> 选中 <strong>且</strong> <code>enabled: true</code>。</p>
+    <p><strong>2.</strong> 在管道/重定向里跑（没有 TTY）——这是设计如此，不是 bug。</p>
+    <p><strong>3.</strong> 终端不支持图形协议——会自动降到 Unicode 半块渲染，看起来像"像素画"，那不是坏了。</p>
+    <p><strong>4.</strong> 你用 petdex 的 npm CLI 装到了 <code>~/.codex/pets</code>——那是给别的工具用的，Hermes 只认自己的 <code>pets\</code> 目录。用 <code>hermes pets install</code>。</p>
+  </div>
+
+  <div class="lab">
+    <div class="lab-h">现在动手 · 约 10 分钟</div>
+    <h4>1. 先体检，确认底子</h4>
+    <div class="code"><div class="hd"><span>bash</span><button class="cp">复制</button></div><pre><code>hermes pets doctor
+hermes skin list</code></pre></div>
+    <p>你机器上 <code>pets\</code> 目录现在是空的，所以 <code>doctor</code> 会告诉你"没装"——这是正常的。</p>
+    <h4>2. 换一次皮肤，感受"三端同步"</h4>
+    <p>随便挑一个（<code>list</code> 里有的），切过去看桌面应用的颜色是不是当场变了。看完切回来：</p>
+    <div class="code"><div class="hd"><span>bash</span><button class="cp">复制</button></div><pre><code>hermes skin use &lt;某个名字&gt;
+hermes skin use default</code></pre></div>
+    <h4>3. 只改一个颜色（这才是真本事）</h4>
+    <div class="code"><div class="hd"><span>bash</span><button class="cp">复制</button></div><pre><code>hermes skin set ui_tool "#7aa2f7"</code></pre></div>
+    <p>只改工具圆点，背景和其它颜色纹丝不动——这就是 <code>skin set</code> 和"抄一份皮肤"的本质区别。</p>
+    <h4>4. 装一只桌宠</h4>
+    <div class="code"><div class="hd"><span>bash</span><button class="cp">复制</button></div><pre><code>hermes pets list
+hermes pets install &lt;你挑的slug&gt; --select
+hermes pets show</code></pre></div>
+    <ul class="check">
+      <li>我知道 skin / 桌面主题 / 桌宠是三回事</li>
+      <li>我用过 <code>skin set</code> 改单个颜色，而不是抄皮肤</li>
+      <li>我装过一只桌宠，或者明确决定不装</li>
+      <li>我知道桌宠不显示该查哪四件事</li>
+    </ul>
+  </div>
+
+  <label class="done"><input type="checkbox" data-k="c11">我配过一次外观，并且知道怎么退回默认</label>
+</section>
+
+<section id="c12">
+<h2><span class="num">12</span>工作台：桌面插件、管理台、多开</h2>
+  <p class="sub">把 Hermes 从"聊天窗"变成"操作台"。这一章决定你是一个人在用，还是有一套系统在用。</p>
+
+  <p>聊天窗的问题是<strong>一切都要问一遍</strong>：现在几个任务在跑？哪个仓库有未提交改动？今天花了多少 token？——每次问一遍，就是一次往返。</p>
+  <p>工作台是把这些问题变成<strong>常驻可见</strong>的。有四种做法，成本从低到高：</p>
+
+  <table>
+    <tr><th>做法</th><th>给你什么</th><th>成本</th><th>什么时候值得</th></tr>
+    <tr><td><strong>管理台</strong> <code>hermes dashboard</code></td><td>网页版配置/密钥/会话管理</td><td>一条命令</td><td>你要改配置、看历史会话</td></tr>
+    <tr><td><strong>多开 Profile</strong></td><td>几套互不干扰的 Hermes（配置/技能/记忆各自独立）</td><td>一条命令</td><td>工作与学习分开、或要不同模型</td></tr>
+    <tr><td><strong>桌面插件</strong></td><td>应用里的常驻面板 / 状态栏 / ⌘K 命令 / 主题</td><td>一个 JS 文件</td><td>你每天都会看的那一个数字</td></tr>
+    <tr><td><strong>TUI 小组件</strong></td><td>终端 TUI 里停靠的小面板</td><td>一个 .mjs 文件</td><td>你主要用终端而不是桌面应用</td></tr>
+  </table>
+
+  <h3>① 管理台：一条命令就有</h3>
+  <div class="code"><div class="hd"><span>bash</span><button class="cp">复制</button></div><pre><code>hermes dashboard            # 起服务并打开浏览器
+hermes dashboard --status   # 看它在不在跑
+hermes dashboard --stop     # 关掉</code></pre></div>
+  <p>里面有消息渠道、MCP 目录、webhook、记忆、以及一个内嵌的聊天窗口。改配置比手改 YAML 安全。</p>
+
+  <h3>② 多开 Profile：给每件事一个独立的脑子</h3>
+  <p>一个 profile = 一套独立的 <code>config.yaml</code> + <code>skills/</code> + 记忆 + 会话库。它们互不污染。</p>
+  <div class="code"><div class="hd"><span>bash</span><button class="cp">复制</button></div><pre><code>hermes profile list                 # 现在有哪些
+hermes profile create research      # 新建一个叫 research 的
+hermes -p research                  # 用 research 这个开聊
+hermes profile show research        # 看它长什么样</code></pre></div>
+  <div class="box">
+    <b>profiles 最容易被忽略的用途</b>
+    <p>不是"多个账号"，而是<strong>隔离上下文</strong>。你的编程 profile 里塞满了几百条调试记忆，切到论文 profile 时，那些东西本来就不该出现——它们既占预算又干扰判断。分开之后，每个 profile 都很"干净"。</p>
+  </div>
+
+  <h3>③ 桌面插件：一个 JS 文件，不用编译</h3>
+  <p>放到 <code>&lt;HERMES_HOME&gt;\desktop-plugins\&lt;id&gt;\plugin.js</code>，<strong>保存即热重载</strong>，不需要重启、不需要打包。可以注册：状态栏小片、可拖拽面板、⌘K 命令、快捷键、整页视图、甚至主题。</p>
+
+  <div class="code"><div class="hd"><span>desktop-plugins\hello\plugin.js · 最小可用</span><button class="cp">复制</button></div><pre><code>import { jsx } from 'react/jsx-runtime'
+
+export default {
+  id: 'hello',
+  name: 'Hello 状态条',
+  register(ctx) {
+    ctx.register({
+      id: 'hello-chip',
+      area: 'statusBar.right',
+      order: 10,
+      render: () => jsx('span', {
+        style: { fontSize: 11, color: 'var(--ui-text-secondary)' },
+        children: '在跑',
+      }),
+    })
+  },
+}</code></pre></div>
+
+  <table>
+    <tr><th>你想做的</th><th><code>area</code></th></tr>
+    <tr><td>状态栏右边一个小片</td><td><code>'statusBar.right'</code></td></tr>
+    <tr><td>一个可拖拽的面板</td><td><code>'panes'</code>（配 <code>placement</code> 或 <code>dock</code>）</td></tr>
+    <tr><td>⌘K 里的一个命令</td><td><code>PALETTE_AREA</code></td></tr>
+    <tr><td>一个整页（带侧栏入口）</td><td><code>ROUTES_AREA</code> + <code>SIDEBAR_NAV_AREA</code></td></tr>
+    <tr><td>聊天里的自定义指令（<code>::xxx{}</code>）</td><td><code>TRANSCRIPT_DIRECTIVE_AREA</code></td></tr>
+  </table>
+
+  <div class="box bad">
+    <b>桌面插件的四个硬坑</b>
+    <p><strong>1. 写 JSX 语法会直接解析失败。</strong>文件不编译，必须用 <code>jsx('div', {...})</code> 函数调用。</p>
+    <p><strong>2. 不能硬编码颜色。</strong>面板本来就铺在应用的背景上，写 <code>#000</code> 在亮色主题下就是一块黑砖。用 <code>var(--ui-accent)</code> 这类主题变量。</p>
+    <p><strong>3. 只导入三样东西：</strong><code>@hermes/plugin-sdk</code>、<code>react</code>、<code>react/jsx-runtime</code>。别的模块名解析不了。</p>
+    <p><strong>4. 忘了 import 的组件会报 ReferenceError。</strong>报错会以 toast 形式弹出来，指名道姓告诉你哪个名字没定义——照着改就行。</p>
+  </div>
+
+  <p>装好后去 <strong>设置 → Plugins</strong> 里能开/关（关掉后重启也保持关闭）。如果没出现，⌘K 里搜 <strong>Reload desktop plugins</strong> 手动重载一次。</p>
+
+  <h3>④ TUI 小组件：给纯终端用户</h3>
+  <p>如果你主要用 <code>hermes --tui</code>，小组件放在 <code>&lt;HERMES_HOME&gt;\tui-widgets\</code> 下（注意：<strong>它不是一条 CLI 命令</strong>，没有 <code>hermes tui-widgets</code>，只是目录约定 + TUI 里停靠）。适合时钟、ticker、监控面板这类"一直在那儿"的东西。</p>
+
+  <h3>判断标准：什么才值得做成面板</h3>
+  <div class="code"><div class="hd"><span>三问</span><button class="cp">复制</button></div><pre><code>1. 这个信息我每天会看超过 3 次？        —— 否则别做
+2. 每次获取要花超过 30 秒（问一遍+等回答）？—— 才值得
+3. 它出错时我会不会不知道？              —— 会，才值得（监控类优先级最高）</code></pre></div>
+  <p>三条里满足两条才动手。绝大多数人第一条就过不了——<strong>那就别做，直接问我就行</strong>。</p>
+
+  <div class="lab">
+    <div class="lab-h">现在动手 · 约 15 分钟</div>
+    <h4>1. 先开一次管理台（零风险）</h4>
+    <div class="code"><div class="hd"><span>bash</span><button class="cp">复制</button></div><pre><code>hermes dashboard</code></pre></div>
+    <p>看完用 <code>hermes dashboard --stop</code> 关掉。</p>
+    <h4>2. 建一个隔离的 profile</h4>
+    <div class="code"><div class="hd"><span>bash</span><button class="cp">复制</button></div><pre><code>hermes profile create paper
+hermes -p paper</code></pre></div>
+    <p>切进去问一句"你有哪些技能"——你会发现它是一个<strong>全新、干净</strong>的 Hermes。这就是隔离。</p>
+    <h4>3. 做一个最小的桌面插件</h4>
+    <p>把这个文件写到 <code>D:\Hermes\desktop-plugins\hello\plugin.js</code>（就是上面那段代码），保存后看状态栏右边有没有出现"在跑"两个字。</p>
+    <p>不出现就去 ⌘K 搜 <strong>Reload desktop plugins</strong>。再不行，看有没有报错 toast。</p>
+    <h4>4. 删掉它</h4>
+    <div class="code"><div class="hd"><span>bash</span><button class="cp">复制</button></div><pre><code>rm -rf "D:/Hermes/desktop-plugins/hello"</code></pre></div>
+    <p>学插件的第一课是<strong>会拆</strong>——留着不用的插件，比不装更麻烦（它会一直占着加载位）。</p>
+    <ul class="check">
+      <li>我跑过一次 dashboard，并把它关掉</li>
+      <li>我知道 profile 是"隔离的脑子"，不是"多个账号"</li>
+      <li>我成功加载过一个桌面插件，并且删掉了它</li>
+      <li>我用"三问"判断过一个想法，并且否掉了它</li>
+    </ul>
+  </div>
+
+  <label class="done"><input type="checkbox" data-k="c12">我搭过一次工作台，也拆过一次</label>
+</section>
+
+<section id="a1">
+<h2><span class="num">A</span>命令速查表</h2>
+  <p class="sub">打印出来贴显示器边上。</p>
+
+  <h3>聊天里用的（斜杠命令）</h3>
+  <table>
+    <tr><th>命令</th><th>作用</th></tr>
+    <tr><td><code>/skills</code></td><td>列出所有技能</td></tr>
+    <tr><td><code>/skills search 关键词</code></td><td>搜技能</td></tr>
+    <tr><td><code>/skills browse</code></td><td>浏览可选技能</td></tr>
+    <tr><td><code>/skills install 标识</code></td><td>装技能</td></tr>
+    <tr><td><code>/learn 材料/网址/流程</code></td><td><strong>把材料变成 skill（最常用）</strong></td></tr>
+    <tr><td><code>/plan 需求</code></td><td>只出计划不动手</td></tr>
+    <tr><td><code>/planmode</code></td><td>强制计划模式（需插件）</td></tr>
+    <tr><td><code>/grill-me 方案</code></td><td>让它反过来审你</td></tr>
+    <tr><td><code>/test-driven-development</code></td><td>先写测试</td></tr>
+    <tr><td><code>/requesting-code-review</code></td><td>提交前审查</td></tr>
+    <tr><td><code>/new</code> · <code>/reset</code></td><td>开新会话（配置改动生效的方式）</td></tr>
+    <tr><td><code>/help</code></td><td>全部命令</td></tr>
+  </table>
+
+  <h3>终端里用的（CLI）</h3>
+  <table>
+    <tr><th>命令</th><th>作用</th></tr>
+    <tr><td><code>hermes</code></td><td>开始聊天</td></tr>
+    <tr><td><code>hermes doctor</code></td><td>体检（有问题先跑这个）</td></tr>
+    <tr><td><code>hermes model</code></td><td>换模型/供应商</td></tr>
+    <tr><td><code>hermes config get KEY</code> / <code>set KEY VAL</code></td><td>读写配置（<strong>永远别手改 config.yaml</strong>）</td></tr>
+    <tr><td><code>hermes skills list</code></td><td>列技能</td></tr>
+    <tr><td><code>hermes skills inspect 标识</code></td><td>安装前预览</td></tr>
+    <tr><td><code>hermes skills reset 名字 --restore</code></td><td>恢复内置技能原样</td></tr>
+    <tr><td><code>hermes plugins list</code></td><td>列插件 + 状态</td></tr>
+    <tr><td><code>hermes plugins browse</code></td><td>看插件目录</td></tr>
+    <tr><td><code>hermes plugins disable/remove 名字</code></td><td>停用 / 卸载</td></tr>
+    <tr><td><code>hermes plugins doctor 名字</code></td><td>运行时校验</td></tr>
+    <tr><td><code>hermes chat -q "一句话任务"</code></td><td>单次执行，不进交互</td></tr>
+  </table>
+
+  <h3>文件位置（你的机器）</h3>
+  <table>
+    <tr><th>要改什么</th><th>路径</th></tr>
+    <tr><td>性格</td><td><code>D:\Hermes\SOUL.md</code></td></tr>
+    <tr><td>记忆/画像</td><td><code>D:\Hermes\memories\</code></td></tr>
+    <tr><td>技能</td><td><code>D:\Hermes\skills\&lt;分类&gt;\&lt;名字&gt;\SKILL.md</code></td></tr>
+    <tr><td>插件</td><td><code>D:\Hermes\plugins\</code></td></tr>
+    <tr><td>配置</td><td><code>D:\Hermes\config.yaml</code>（用 <code>hermes config</code> 改）</td></tr>
+    <tr><td>密钥</td><td><code>D:\Hermes\.env</code></td></tr>
+    <tr><td>历史会话</td><td><code>D:\Hermes\state.db</code></td></tr>
+  </table>
+</section>
+
+<section id="a2">
+<h2><span class="num">B</span>30 天路线</h2>
+  <p class="sub">别一次全学。每周只做一件事，做完打勾。</p>
+
+  <table>
+    <tr><th>周</th><th>只做这一件</th><th>验收标准</th></tr>
+    <tr><td>第 1 周</td><td>把 SOUL.md 和 memory 收拾干净（第 3、4 章）</td><td>SOUL 只写性格；memory 做过一次搬迁审计；每场对话结束感觉"它说话像我了"</td></tr>
+    <tr><td>第 2 周</td><td>给一个真实项目写 ≤20 行 AGENTS.md（第 5 章）</td><td>在该目录开新会话，问测试命令，答对</td></tr>
+    <tr><td>第 3 周</td><td>建第一个自建 skill，并用它干一次真活（第 6 章）</td><td>skill 被自然语言触发过；用完 patch 过一次</td></tr>
+    <tr><td>第 4 周</td><td>走一遍标准施工流程 + 每周维护（第 8、10 章）</td><td>有 1 个活用了 /plan；周末做过一次维护检查</td></tr>
+    <tr><td>第 5 周<br><span style="color:var(--muted);font-size:12px">可选</span></td><td>配外观 + 搭一个工作台（第 11、12 章）</td><td>换过一次皮肤；做过一个插件并删掉</td></tr>
+    <tr><td>之后</td><td>只做一件事：<strong>干完活就问"值得存成 skill 吗"</strong></td><td>自建 skill 数量随实际需求增长，而不是随好奇心增长</td></tr>
+  </table>
+
+  <div class="box warn">
+    <b>唯一会失败的方式</b>
+    <p>这 30 天里你如果开始"研究插件"而不是"用 Agent 干活"，就会前功尽弃。判断标准很简单：<strong>这周我有没有一件真实的事，是交给它做完的？</strong>没有，就是走偏了。</p>
+  </div>
+</section>
+
+<section id="a3">
+<h2><span class="num">C</span>参考资料</h2>
+  <p class="sub">本课的事实来源，都可点开核对。</p>
+
+  <h4>Hermes 官方</h4>
+  <ul>
+    <li><a href="https://hermes-agent.nousresearch.com/docs/zh-Hans/guides/work-with-skills" target="_blank">使用 Skills（中文）</a> — 装/搜/建技能、技能 vs 记忆的判据</li>
+    <li><a href="https://hermes-agent.nousresearch.com/docs/user-guide/features/skills" target="_blank">Skills System</a> — 三级加载、<code>/learn</code>、技能包、写审批</li>
+    <li><a href="https://hermes-agent.nousresearch.com/docs/user-guide/features/memory" target="_blank">Persistent Memory</a> — 2200/1375 上限、冻结快照、写满报错</li>
+    <li><a href="https://hermes-agent.nousresearch.com/docs/user-guide/features/context-files" target="_blank">Context Files</a> — SOUL/AGENTS 优先级、git 链式合并、注入扫描</li>
+    <li><a href="https://hermes-agent.nousresearch.com/docs/user-guide/features/plugins" target="_blank">Plugins</a> — 插件结构与 hook</li>
+    <li><a href="https://hermes-agent.nousresearch.com/docs/user-guide/features/curator" target="_blank">Curator</a> — 自建技能的自动归档</li>
+    <li><a href="https://hermes-agent.nousresearch.com/docs/llms.txt" target="_blank">文档总索引 llms.txt</a> — 任何"能不能做 X"先查这里</li>
+  </ul>
+
+  <h4>Skill 标准与写法</h4>
+  <ul>
+    <li><a href="https://platform.claude.com/docs/zh-CN/agents-and-tools/agent-skills/best-practices" target="_blank">Skill 编写最佳实践（中文）</a> — 简洁原则、自由度分级、description 写法、检查清单</li>
+    <li><a href="https://www.anthropic.com/research/skills" target="_blank">Anthropic: Agent Skills</a> — 规范发布方</li>
+    <li><a href="https://developer.aliyun.com/article/1734589" target="_blank">Agent Skill 规范、构建与设计模式</a> — 字段约束、渐进加载（已被 33+ 产品采纳）</li>
+  </ul>
+
+  <h4>AGENTS.md 与指令预算</h4>
+  <ul>
+    <li><a href="https://glean.smartcoder.ai/a/a-complete-guide-to-agents-md-24nam8" target="_blank">AGENTS.md 瘦身指南：用渐进披露守住指令预算</a> — 150–200 条上限的来源与拆法</li>
+    <li><a href="https://cyborb.ai/blog/agents-md-guide" target="_blank">AGENTS.md explained</a></li>
+    <li><a href="https://dev.to/mars_peakul/one-agentsmd-to-rule-claude-code-cursor-and-codex-3jmi" target="_blank">One AGENTS.md to rule Claude Code, Cursor and Codex</a> — 单一事实来源</li>
+  </ul>
+
+  <h4>上下文工程（进阶）</h4>
+  <ul>
+    <li><a href="https://microsoft.github.io/ai-agents-for-beginners/translations/zh-CN/12-context-engineering/" target="_blank">Microsoft: AI 代理的上下文工程（中文）</a></li>
+    <li><a href="https://www.phodal.com/blog/prompt-to-agenticg/" target="_blank">从 Prompt 到上下文工程构建 AI Agent</a></li>
+  </ul>
+
+  <div class="box">
+    <b>怎么用这份清单</b>
+    <p>不要通读。<strong>遇到具体问题时再来查</strong>：想不清 memory 该写什么 → 看 memory 那篇；skill 触发不了 → 看 best-practices 的 description 一节。</p>
+  </div>
+</section>

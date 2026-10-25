@@ -1,0 +1,18 @@
+# 构建/预览产生的临时文件
+_shot_*.html
+shot-*.png
+_t*.png
+
+# 不含脱敏的旧版本与草稿（不入库）
+index-v1.html
+new-chapters.html
+
+# 系统
+Thumbs.db
+desktop.ini
+.DS_Store
+
+# OAuth 设备码等临时凭据
+.device_code
+.gh_token
+_pages.json
